@@ -235,17 +235,15 @@ function manualSync(){
 }
 function openTokenSetup(){
   var existing=getGHToken();
-  document.getElementById('overlay').style.display='flex';
-  document.getElementById('modal').innerHTML=
-    '<div style="padding:28px;max-width:500px;width:100%">'+
-    '<h2 style="margin:0 0 8px;font-family:Appetite Pro Heavy,sans-serif;color:#1C3B1D;font-size:22px">GitHub Sync Setup</h2>'+
-    '<p style="margin:0 0 16px;font-size:13px;color:#304F59">Paste your GitHub Personal Access Token below. It will be saved in your browser only — never shared.</p>'+
-    '<input id="gh-token-input" type="password" placeholder="ghp_..." value="'+existing+'" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:12px">'+
-    '<p style="margin:0 0 16px;font-size:11px;color:#888">Generate at: GitHub → Settings → Developer settings → Personal access tokens (classic) → repo scope</p>'+
-    '<div style="display:flex;gap:10px;justify-content:flex-end">'+
-    '<button onclick="closeM()" style="padding:8px 16px;border:1.5px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px">Cancel</button>'+
-    '<button onclick="saveToken()" style="padding:8px 16px;background:#00A19E;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold">Save Token</button>'+
-    '</div></div>';
+  show('<div class="panel" style="max-width:480px;padding:28px;">'+
+    '<h3 style="margin:0 0 12px;color:#1C3B1D;">GitHub Sync Setup</h3>'+
+    '<p style="margin:0 0 12px;font-size:13px;color:#304F59;">Paste your GitHub Personal Access Token below. It is saved in your browser only — never shared or stored on GitHub.</p>'+
+    '<input id="gh-token-input" type="password" placeholder="ghp_..." value="'+existing+'" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #ddd;border-radius:6px;font-size:14px;margin-bottom:8px">'+
+    '<p style="margin:0 0 16px;font-size:11px;color:#888;">GitHub → Settings → Developer settings → Personal access tokens (classic) → repo scope</p>'+
+    '<div style="display:flex;gap:10px;justify-content:flex-end;">'+
+    '<button onclick="closeM()" style="padding:8px 16px;border:1.5px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;font-size:13px;">Cancel</button>'+
+    '<button onclick="saveToken()" style="padding:8px 16px;background:#00A19E;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">Save Token</button>'+
+    '</div></div>');
 }
 function saveToken(){
   var t=document.getElementById('gh-token-input').value.trim();
