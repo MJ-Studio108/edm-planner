@@ -214,16 +214,19 @@ function persist(){
 }
 function pushToGitHub(){
   var token=getGHToken();
-  if(!token){setSyncStatus('');return;}
+  if(!token){setSyncStatus('⚠ No token — click Sync to set up','#F97316');return;}
   var payload=JSON.stringify({items:items,nid:nid,pillars:PILLARS,sbadge:SBADGE});
   setSyncStatus('Syncing...','rgba(255,255,255,0.7)');
-  /* Always fetch latest SHA to avoid conflicts */
   fetch(GH_API+'?ref='+GH_BRANCH+'&t='+Date.now(),{
     headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
   })
-    .then(function(r){return r.ok?r.json():null;})
+    .then(function(r){
+      if(!r.ok){console.error('SHA fetch failed:',r.status,r.statusText);throw new Error('sha-fail-'+r.status);}
+      return r.json();
+    })
     .then(function(d){
       var sha=d&&d.sha?d.sha:undefined;
+      console.log('SHA:',sha?sha.substring(0,7):'none');
       var body={message:'Update calendar data',content:btoa(unescape(encodeURIComponent(payload))),branch:GH_BRANCH};
       if(sha)body.sha=sha;
       return fetch(GH_API,{
@@ -233,10 +236,19 @@ function pushToGitHub(){
       });
     })
     .then(function(r){
-      if(r&&r.ok){setSyncStatus('Saved ✓','#22C55E');setTimeout(function(){setSyncStatus('');},3000);}
-      else{setSyncStatus('Save failed ✗ — press Sync','#EF4444');}
+      if(r&&r.ok){
+        console.log('Saved to GitHub OK');
+        setSyncStatus('Saved ✓','#22C55E');
+        setTimeout(function(){setSyncStatus('');},3000);
+      } else {
+        r.json().then(function(e){console.error('GitHub PUT failed:',r.status,JSON.stringify(e));}).catch(function(){console.error('GitHub PUT failed:',r.status);});
+        setSyncStatus('Save failed ✗ — press Sync','#EF4444');
+      }
     })
-    .catch(function(){setSyncStatus('Save failed ✗ — press Sync','#EF4444');});
+    .catch(function(err){
+      console.error('pushToGitHub error:',err);
+      setSyncStatus('Save failed ✗ — press Sync','#EF4444');
+    });
 }
 function manualSync(){
   var token=getGHToken();
