@@ -204,11 +204,23 @@ function setSyncStatus(msg,col){
   el.style.color=col||'rgba(255,255,255,0.7)';
   el.style.display=msg?'inline':'none';
 }
+var _persistTimer=null;
 function persist(){
+  /* Debounce — wait 1.5s after last change before saving to GitHub */
+  fallbackPersist(JSON.stringify({items:items,nid:nid,pillars:PILLARS,sbadge:SBADGE}));
+  setSyncStatus('Saving...','rgba(255,255,255,0.6)');
+  if(_persistTimer)clearTimeout(_persistTimer);
+  _persistTimer=setTimeout(function(){pushToGitHub();},1500);
+}
+function pushToGitHub(){
   var token=getGHToken();
-  if(!token){fallbackPersist(JSON.stringify({items:items,nid:nid,pillars:PILLARS,sbadge:SBADGE}));return;}
+  if(!token){setSyncStatus('');return;}
   var payload=JSON.stringify({items:items,nid:nid,pillars:PILLARS,sbadge:SBADGE});
-  fetch(GH_API+'?ref='+GH_BRANCH,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}})
+  setSyncStatus('Syncing...','rgba(255,255,255,0.7)');
+  /* Always fetch latest SHA to avoid conflicts */
+  fetch(GH_API+'?ref='+GH_BRANCH+'&t='+Date.now(),{
+    headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
+  })
     .then(function(r){return r.ok?r.json():null;})
     .then(function(d){
       var sha=d&&d.sha?d.sha:undefined;
@@ -221,10 +233,10 @@ function persist(){
       });
     })
     .then(function(r){
-      if(r&&r.ok){setSyncStatus('Synced ✓','#22C55E');setTimeout(function(){setSyncStatus('');},3000);}
-      else{setSyncStatus('Sync failed ✗','#EF4444');fallbackPersist(payload);}
+      if(r&&r.ok){setSyncStatus('Saved ✓','#22C55E');setTimeout(function(){setSyncStatus('');},3000);}
+      else{setSyncStatus('Save failed ✗ — press Sync','#EF4444');}
     })
-    .catch(function(){setSyncStatus('Sync failed ✗','#EF4444');fallbackPersist(payload);});
+    .catch(function(){setSyncStatus('Save failed ✗ — press Sync','#EF4444');});
 }
 function manualSync(){
   var token=getGHToken();
